@@ -1,0 +1,49 @@
+<project name="build" default="default" basedir="." xmlns:sf="antlib:com.salesforce">
+
+    <property file="${basedir}/build.properties"/>
+
+    <taskdef uri="antlib:com.salesforce"
+        resource="com/salesforce/antlib.xml"
+        classpath="${basedir}/ant-salesforce.jar"/>
+
+    <target name="retrieve">
+      <echo level="info">Retrieving package from the org using ...
+        username="${username}"
+        password="${password}"
+        retrieveTarget="${basedir}/src"
+        packageNames="${fullName}"
+      </echo>
+      <sf:retrieve
+        username="${username}"
+        password="${password}"
+        retrieveTarget="${basedir}/src"
+        packageNames="${fullName}"
+        serverurl="https://login.salesforce.com"
+        apiVersion="39.0"/>
+    </target>
+
+    <target name="fixManifest">
+      <exec executable="bash" failonerror="true">
+        <arg value="fix-manifest"/>
+        <env key="basedir" value="${basedir}"/>
+      </exec>
+    </target>
+
+    <target name="deploy">
+      <echo level="info">Deploying unmanaged package to org using ...
+        username="${username_deploy}"
+        password="${password_deploy}"
+        deployRoot="${basedir}/src"
+        fullName="${fullName}"
+      </echo>
+
+      <sf:deploy
+        username="${username_deploy}"
+        password="${password_deploy}"
+        serverurl="https://login.salesforce.com"
+        deployRoot="${basedir}/src"/>
+    </target>
+
+    <target name="default" depends="retrieve, fixManifest, deploy"/>
+
+</project>

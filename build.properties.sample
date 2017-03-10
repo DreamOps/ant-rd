@@ -1,0 +1,10 @@
+# package name (not namespace)
+fullName=
+# package username
+username=
+# package password with security token or whitelist your IP
+password=
+# development org username
+username_deploy=
+# dev org pass word with security token or whitelist your IP
+password_deploy=

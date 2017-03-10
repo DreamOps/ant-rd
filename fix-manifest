@@ -1,0 +1,3 @@
+#!/bin/bash 
+echo Removing namespace field from ${basedir}/src/package.xml
+sed -i '.bak' '/namespacePrefix/d' ${basedir}/src/package.xml
