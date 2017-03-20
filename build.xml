@@ -7,17 +7,20 @@
         classpath="${basedir}/ant-salesforce.jar"/>
 
     <target name="retrieve">
+      <property name="packageNames" value="${fullName}"/>
+      <property name="retrieveTarget" value="${basedir}/src"/>
+      <mkdir dir="${retrieveTarget}"/>
       <echo level="info">Retrieving package from the org using ...
         username="${username}"
         password="${password}"
-        retrieveTarget="${basedir}/src"
-        packageNames="${fullName}"
+        retrieveTarget="${retrieveTarget}"
+        packageNames="${packageNames}"
       </echo>
       <sf:retrieve
         username="${username}"
         password="${password}"
-        retrieveTarget="${basedir}/src"
-        packageNames="${fullName}"
+        retrieveTarget="${retrieveTarget}"
+        packageNames="${packageNames}"
         serverurl="https://login.salesforce.com"
         apiVersion="39.0"/>
     </target>
@@ -30,19 +33,51 @@
     </target>
 
     <target name="deploy">
+      <property name="deployRoot" value="${basedir}/pkg"/>      
+      <property name="serverurl" value="https://login.salesforce.com"/>  
       <echo level="info">Deploying unmanaged package to org using ...
         username="${username_deploy}"
         password="${password_deploy}"
-        deployRoot="${basedir}/src"
-        fullName="${fullName}"
+        serverurl="${serverurl}"
+        deployRoot="${deployRoot}"
       </echo>
-
       <sf:deploy
         username="${username_deploy}"
         password="${password_deploy}"
-        serverurl="https://login.salesforce.com"
-        deployRoot="${basedir}/src"/>
+        serverurl="${serverurl}"
+        deployRoot="${deployRoot}"/>
     </target>
+
+    <!-- Installs managed package.
+      Expects install_namespace, install_version, and install_password to be set by caller. -->
+    <target name="install">
+        <property name="apiVersion" value="39.0"/>
+        <property name="deployRoot" value="${basedir}/pkg"/>
+        <echo level="info">Installing package to org using ...
+            install_namespace=${install_namespace}
+            install_version=${install_version}
+            install_password=${install_password}
+            apiVersion=${apiVersion}
+            deployRoot=${deployRoot}
+        </echo>
+        <property name="installedPackage_xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?><Package xmlns="${sf_xmlns}">
+  <types>
+    <members>*</members>
+    <name>InstalledPackage</name>
+  </types>
+  <version>${apiVersion}</version>
+</Package>]]></property>
+        <delete dir="${deployRoot}"/>
+        <mkdir dir="${deployRoot}/installedPackages"/>        
+        <echo file="${deployRoot}/package.xml" append="false">${installedPackage_xml}</echo>
+        <property name="metadata_xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<InstalledPackage xmlns="http://soap.sforce.com/2006/04/metadata">
+    <versionNumber>${install_version}</versionNumber>
+    <password>${install_password}</password>
+</InstalledPackage>]]></property>
+        <echo file="${deployRoot}/installedPackages/${install_namespace}.installedPackage" append="false">${metadata_xml}</echo>
+        <antcall target="deploy"/>
+    </target>    
 
     <target name="default" depends="retrieve, fixManifest, deploy"/>
 
